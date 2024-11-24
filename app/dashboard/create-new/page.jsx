@@ -1,12 +1,43 @@
 "use client"
-import React from 'react'
+import React,{useState} from 'react'
 import ImageSelection from './_components/ImageSelection'
 import RoomType from './_components/RoomType'
 import DesignType from './_components/DesignType'
+import AdditionalReq from './_components/AdditionalReq'
+import { Button } from '@/components/ui/button'
+import axios from 'axios'
+import { uploadBytes } from 'firebase/storage'
 
 function CreateNew() {
+  const [formData,setFormData]=useState([]);
    const onHandleInputChange=(value,fieldName)=>{
+    setFormData(prev=>({
+      ...prev,
+      [fieldName]:value
+    }))
+    console.log(formData)
 
+  }
+
+  const GenerateAiImage= async()=>{
+    const rawImageUrl = await SaveRawImageToFirebase();
+  //  const result = await axios.post('/api/redesign-room',formData)
+  //  console.log(result)
+
+  }
+
+  const SaveRawImageToFirebase=async()=>{
+    const fileName=Date.now()+"_raw.png";
+    const imageRef = ref(storage,'room-redesign/'+fileName);
+
+    await uploadBytes(imageRef,formData.image).then(resp=>{
+      console.log('File Uploaded.......')
+    })
+
+
+    const downloadUrl=await getDownUrl(imageRef); 
+    console.log(downloadUrl);
+    return downloadUrl
   }
   return (
     <div>
@@ -22,10 +53,13 @@ function CreateNew() {
          <RoomType selectedRoomType={(value)=>onHandleInputChange(value,'room')}></RoomType>
 
           {/*Design Type */}
-          <DesignType></DesignType>
+          <DesignType selectedDesignType={(value)=>onHandleInputChange(value,'designType')}></DesignType>
 
           {/*Adiitional Requirements(optional) */}
+          <AdditionalReq additionalRequirementInput={(value)=>onHandleInputChange(value,'additionalReq')}></AdditionalReq>
 
+          <Button className='w-full mt-5' onClick={GenerateAiImage}>Generate</Button>
+          <p className='text-sm text-gray-400 mb-52'>NOTE:1 Credit will use to redesign your Room</p>
         </div>
       </div>
     </div>
